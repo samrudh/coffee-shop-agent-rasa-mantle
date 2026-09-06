@@ -41,3 +41,7 @@ wheels/
 .DS_Store
 .vscode/
 .idea/
+
+# Local submission guidelines
+END_OF_BUILD_PR_GUIDELINES.md
+
