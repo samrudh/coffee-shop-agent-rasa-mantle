@@ -23,6 +23,18 @@ test_cases:
         assertions:
           - flow_started: place_customer_order
 
+  - test_case: Multi-turn customer coffee ordering with slot collection and confirmation
+    steps:
+      - user: /session_start
+      - user: I would like to place a coffee order for pickup.
+        assertions:
+          - flow_started: place_customer_order
+      - user: I want an Ethiopia Yirgacheffe Organic, regular size with oat milk.
+      - user: Pickup at Lower Manhattan #5, please place my order now.
+        assertions:
+          - flow_completed:
+              flow_id: place_customer_order
+
   - test_case: Customer loyalty points balance check
     steps:
       - user: /session_start

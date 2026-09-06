@@ -109,6 +109,7 @@ async def verify_ceo_pin(
     )
 
 
+
 @tool(description="Check whether the active session has verified CEO / executive authorization.")
 async def check_ceo_status(
     context: ToolContext = None,
@@ -286,6 +287,7 @@ async def check_loyalty_account(
     )
 
 
+
 @tool(description="Redeem customer loyalty points for a complimentary beverage.")
 async def redeem_loyalty_reward(
     customer_id: str,
@@ -330,9 +332,23 @@ async def place_coffee_order(
         special_instructions: Custom notes (e.g. 'extra hot', 'light ice').
     """
     cid = customer_id or (context.memory.get("active_customer_id") if context else "CUST-1001")
+    parsed_store_id = 5
+    if isinstance(store_id, int):
+        parsed_store_id = store_id
+    else:
+        s_str = str(store_id).strip().lower()
+        if s_str.isdigit():
+            parsed_store_id = int(s_str)
+        elif "astoria" in s_str:
+            parsed_store_id = 3
+        elif "manhattan" in s_str or "lower" in s_str:
+            parsed_store_id = 5
+        elif "hell" in s_str or "kitchen" in s_str:
+            parsed_store_id = 8
+
     res = create_order(
         customer_id=cid,
-        store_id=int(store_id),
+        store_id=parsed_store_id,
         item_name=item_name,
         size=size,
         milk_type=milk_type,
@@ -504,6 +520,7 @@ async def fetch_revenue_analytics(
     sid = int(store_id) if store_id and int(store_id) > 0 else None
     summary = get_executive_revenue_summary(store_id=sid, start_date=start_date, end_date=end_date)
     return ToolResult(llm_response={"ok": True, **summary})
+
 
 
 @tool(description="Benchmark revenue, order volume, and ticket sizes across Lower Manhattan, Hell's Kitchen, and Astoria stores.")
