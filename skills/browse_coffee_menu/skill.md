@@ -1,5 +1,5 @@
 ---
-name: customer_menu
+name: browse_coffee_menu
 description: >
   Search the coffee, tea, chocolate, and bakery menu items and prices.
   Activate when the customer asks what drinks, teas, coffees, or pastries are on the menu,

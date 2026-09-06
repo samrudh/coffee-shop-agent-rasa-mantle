@@ -1,5 +1,5 @@
 ---
-name: customer_loyalty
+name: check_loyalty_rewards
 description: >
   Check customer loyalty points, rewards balance, membership status,
   tier benefits (Regular, Silver, Gold), and redeem loyalty points for drinks.

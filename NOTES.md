@@ -28,19 +28,19 @@ graph TD
 ```
 
 ### Level 1: Natural Language Instructions & Semantic Retrieval
-- **Skill**: `skills/customer_menu/skill.md`
+- **Skill**: `skills/browse_coffee_menu/skill.md`
 - **Reference Doc**: `references/roast_origins_guide.md`
 - **Pattern**: Unconstrained natural language guidance combined with local vector embeddings (`sentence-transformers/all-MiniLM-L6-v2`) in `integrations.yml`. The LLM dynamically retrieves tasting notes, allergen policies, and origin details without rigid state machines.
 
 ### Level 2: Scoped Instructions (`if:` blocks)
-- **Skill**: `skills/customer_loyalty/skill.md`
+- **Skill**: `skills/check_loyalty_rewards/skill.md`
 - **Pattern**: Uses Mantle compile-time prose markers (`if: session.project.loyalty_tier == "Gold"`, `if: session.project.loyalty_points >= 50`).
 - **Why it matters**: Conditional instructions are only visible to the LLM when the condition evaluates to true, preventing context bloat and hallucinated perks for lower-tier members.
 
 ### Level 3: Ordered Blocks (`:::ordered_block`)
-- **Skill**: `skills/operator_orders/skill.md`
+- **Skill**: `skills/process_store_orders/skill.md`
 - **Pattern**: `:::ordered_block id=barista_fulfillment_flow` enforcing strict procedural execution:
-  1. `fetch_queue` (`execute_tool: get_store_order_queue`)
+  1. `fetch_queue` (`execute_tool: fetch_store_order_queue`)
   2. `select_order` (autonomous step with `complete_when`)
   3. `verify_recipe` (verifies milk choice and custom notes)
   4. `start_brewing` (updates status to 'brewing')
@@ -48,16 +48,16 @@ graph TD
 - **Why it matters**: Baristas must follow standard operational recipes and safety verification before marking drinks as ready.
 
 ### Level 4: Sub-Skills Composition
-- **Skills**: `skills/operator_inventory/` delegating to `@skill.restock_inventory` and `@skill.escalate_supply_outage`.
+- **Skills**: `skills/manage_store_inventory/` delegating to `@skill.restock_inventory` and `@skill.escalate_supply_outage`.
 - **Pattern**: Modular decomposition. The parent inventory skill evaluates stock levels and invokes specialized child skills for delivery intake or emergency regional alerting.
 
 ### Level 5a: Declarative Tool Constraints & Preconditions
-- **Skill**: `skills/customer_order/skill.md`
+- **Skill**: `skills/place_customer_order/skill.md`
 - **Pattern**:
   ```yaml
   tool_constraints:
     - place_coffee_order:
-        requires: session.project.selected_item
+        requires: session.place_customer_order.selected_item
         requires_confirmation:
           enabled: true
           utter_for_confirmation: utter_confirm_coffee_order
@@ -67,7 +67,7 @@ graph TD
 - **Why it matters**: Zero chance of placing an unintended financial transaction. Mantle deterministically pauses the dialogue, prompts the user for explicit confirmation, and branches accordingly.
 
 ### Level 5b: Programmatic RBAC & Context Memory
-- **Skills**: `skills/ceo_analytics/` and `skills/authenticate_ceo/`
+- **Skills**: `skills/query_executive_analytics/` and `skills/verify_ceo_authentication/`
 - **Decorator**: `@require_role("ceo")` in `tools/coffeeshop.py`
 - **Pattern**: When an unauthenticated user asks for sensitive financial metrics, the tool intercepts execution and returns `auth_required: True`. The agent prompts for the 4-digit PIN (`8888`), calls `verify_ceo_pin` (which sets `context.memory.set("is_ceo", True)`), and seamlessly re-executes the analytics query.
 

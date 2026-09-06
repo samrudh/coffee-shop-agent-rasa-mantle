@@ -1,5 +1,5 @@
 ---
-name: operator_inventory
+name: manage_store_inventory
 description: >
   Monitor store inventory levels, check low-stock thresholds for beans, dairy, and syrups,
   and coordinate restocking deliveries or emergency outage escalations.

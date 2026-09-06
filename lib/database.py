@@ -488,3 +488,128 @@ def get_customer_tier_overview() -> dict[str, Any]:
     tiers = [dict(r) for r in cursor.fetchall()]
     conn.close()
     return {"tier_distribution": tiers}
+
+
+COFFEE_SENSORY_CATALOG: list[dict[str, Any]] = [
+    {
+        "item_name": "Ethiopia Yirgacheffe Organic",
+        "category": "Coffee",
+        "type": "Gourmet Brewed Coffee",
+        "unit_price": 3.00,
+        "roast_type": "Light Roast",
+        "acidity": "High Citric Acidity",
+        "body": "Light Silky Body",
+        "caffeine_level": "High Caffeine Surge",
+        "flavor_notes": ["Floral Jasmine", "Bergamot Citrus", "Wild Honey", "Lemon Zest"],
+        "sensory_profile": (
+            "Ethiopia Yirgacheffe Organic: Light roast grown at high altitude (2,000m+). "
+            "High citric acidity with vibrant floral jasmine, bergamot citrus, and honey notes. "
+            "Delivers an immediate, clean high caffeine surge to wake up, boost energy, and overcome tiredness or sleepiness. "
+            "Ideal for: sleepy, low energy, bright morning start, high focus, interesting floral taste."
+        ),
+    },
+    {
+        "item_name": "Colombian Supremo Single-Origin",
+        "category": "Coffee",
+        "type": "Gourmet Brewed Coffee",
+        "unit_price": 3.50,
+        "roast_type": "Medium Roast",
+        "acidity": "Balanced Medium Acidity",
+        "body": "Medium Velvet Body",
+        "caffeine_level": "Moderate Balanced Caffeine",
+        "flavor_notes": ["Toasted Pecan", "Salted Caramel", "Red Apple", "Milk Chocolate"],
+        "sensory_profile": (
+            "Colombian Supremo Single-Origin: Medium roast with a smooth, velvety medium body and balanced acidity. "
+            "Rich flavor notes of toasted pecan, salted caramel, red apple, and milk chocolate. "
+            "Provides sustained focus and mental stamina without jitters or harsh bitter notes. "
+            "Ideal for: deep work, strategy meetings, smooth focus, balanced energy, rich afternoon productivity."
+        ),
+    },
+    {
+        "item_name": "Artisan Dark Roast Espresso",
+        "category": "Coffee",
+        "type": "Espresso Beverage",
+        "unit_price": 3.25,
+        "roast_type": "Dark Roast",
+        "acidity": "Low Acidity",
+        "body": "Full Heavy Body",
+        "caffeine_level": "High Concentrated Caffeine",
+        "flavor_notes": ["Smoky Dark Chocolate", "Molasses", "Roasted Walnut", "Cocoa Nib"],
+        "sensory_profile": (
+            "Artisan Dark Roast Espresso: Intense dark roast with a full, heavy crema body and low acidity. "
+            "Bold flavor notes of smoky dark chocolate, molasses, and cocoa nibs. "
+            "Offers a potent concentrated caffeine hit for intense physical or mental demands, pulling all-nighters, or strong espresso lovers. "
+            "Ideal for: intense caffeine boost, low acidity preference, bold dark chocolate flavor."
+        ),
+    },
+    {
+        "item_name": "Ceremonial Grade Uji Matcha Latte",
+        "category": "Tea",
+        "type": "Specialty Tea",
+        "unit_price": 4.50,
+        "roast_type": "Shade-Grown Green Tea",
+        "acidity": "Zero Coffee Acidity",
+        "body": "Creamy Smooth Body",
+        "caffeine_level": "Moderate Sustained (L-Theanine)",
+        "flavor_notes": ["Umami Sweet", "Fresh Grass", "Creamy Oat", "Vanilla Bean"],
+        "sensory_profile": (
+            "Ceremonial Grade Uji Matcha Latte: Pure Japanese shade-grown green tea blended with steamed milk. "
+            "Zero coffee acidity, rich in L-theanine amino acids that deliver a calm, jitter-free alert state. "
+            "Flavor notes of smooth umami, fresh tea leaves, and subtle vanilla. "
+            "Ideal for: stress relief, anxiety, jitters, calm focus, stomach sensitivity, soothing afternoon."
+        ),
+    },
+    {
+        "item_name": "Spiced Masala Chai Latte",
+        "category": "Tea",
+        "type": "Specialty Tea",
+        "unit_price": 4.25,
+        "roast_type": "Steeped Black Tea",
+        "acidity": "Low Acidity",
+        "body": "Warming Full Body",
+        "caffeine_level": "Moderate Gentle Caffeine",
+        "flavor_notes": ["Cardamom", "Cinnamon Spice", "Fresh Ginger", "Clove", "Honey"],
+        "sensory_profile": (
+            "Spiced Masala Chai Latte: Slow-steeped Assam black tea infused with whole cardamom, cinnamon, ginger, and clove. "
+            "Warming spicy-sweet flavor with low acidity and gentle caffeine. "
+            "Ideal for: cozy rainy days, comforting feeling, cold weather, spiced indulgence."
+        ),
+    },
+    {
+        "item_name": "Belgian Velvet Hot Chocolate",
+        "category": "Drinking Chocolate",
+        "type": "Drinking Chocolate",
+        "unit_price": 4.75,
+        "roast_type": "Roasted Cacao",
+        "acidity": "Zero Acidity",
+        "body": "Ultra Rich Thick Body",
+        "caffeine_level": "Caffeine Free",
+        "flavor_notes": ["70% Belgian Dark Chocolate", "Vanilla Cream", "Marshmallow"],
+        "sensory_profile": (
+            "Belgian Velvet Hot Chocolate: Melted 70% Belgian dark chocolate folded into frothed steamed milk. "
+            "Decadent, ultra-rich, completely caffeine-free indulgence with zero acidity. "
+            "Ideal for: sweet treat, evening comfort, caffeine-free relaxation, cozy mood, dessert."
+        ),
+    },
+    {
+        "item_name": "Cold Brew Nitro Reserve",
+        "category": "Coffee",
+        "type": "Cold Brew",
+        "unit_price": 4.75,
+        "roast_type": "Medium-Dark Cold Steep",
+        "acidity": "Ultra Low Acidity",
+        "body": "Cascading Micro-Foam Body",
+        "caffeine_level": "Extremely High Caffeine",
+        "flavor_notes": ["Dark Cocoa", "Sweet Creaminess", "Hazelnut", "Malt"],
+        "sensory_profile": (
+            "Cold Brew Nitro Reserve: Nitrogen-infused slow cold brew steeped for 24 hours. "
+            "Ultra-smooth cascading micro-foam texture, naturally sweet hazelnut and dark cocoa flavor, ultra-low acidity, and an extremely high caffeine kick. "
+            "Ideal for: maximum energy boost, hot summer days, intense workout prep, fast refreshing alertness."
+        ),
+    },
+]
+
+
+def get_sensory_menu_catalog() -> list[dict[str, Any]]:
+    """Retrieve all sensory catalog items with flavor, roast, acidity, and vibe profiles."""
+    return COFFEE_SENSORY_CATALOG

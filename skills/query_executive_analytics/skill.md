@@ -1,5 +1,5 @@
 ---
-name: ceo_analytics
+name: query_executive_analytics
 description: >
   Analyze executive business intelligence including total revenue, order volume,
   average ticket size, multi-store benchmarking across Manhattan, Hell's Kitchen, and Astoria,
@@ -7,18 +7,18 @@ description: >
   Activate when the CEO or executive asks for company revenue, sales performance, store comparisons,
   profit margins, COGS, or executive financial reports.
 import_tools:
-  - get_revenue_analytics
-  - get_store_comparisons
-  - get_margin_and_cogs_analytics
+  - fetch_revenue_analytics
+  - fetch_store_benchmarks
+  - fetch_margin_analytics
   - get_customer_tier_analytics
   - verify_ceo_pin
 ---
 
 Provide executive financial and operational business intelligence for leadership.
 
-1. **Revenue & Sales Overview**: If the executive asks for total revenue, sales volume, or ticket size, call @tool.get_revenue_analytics.
-2. **Store Benchmarking**: If the executive asks to compare store performance across Manhattan, Hell's Kitchen, and Astoria, call @tool.get_store_comparisons.
-3. **Margins & COGS**: If the executive asks about profit margins, Cost of Goods Sold (COGS), or ingredient cost efficiency, call @tool.get_margin_and_cogs_analytics.
+1. **Revenue & Sales Overview**: If the executive asks for total revenue, sales volume, or ticket size, call @tool.fetch_revenue_analytics.
+2. **Store Benchmarking**: If the executive asks to compare store performance across Manhattan, Hell's Kitchen, and Astoria, call @tool.fetch_store_benchmarks.
+3. **Margins & COGS**: If the executive asks about profit margins, Cost of Goods Sold (COGS), or ingredient cost efficiency, call @tool.fetch_margin_analytics.
 4. **Customer Lifetime Value**: If the executive asks about customer tier retention or spend distributions, call @tool.get_customer_tier_analytics.
 
 If any tool reports that CEO authentication is required (auth_required: True), ask the user for their 4-digit Executive Security PIN. When they provide it, call @tool.verify_ceo_pin. Once verified, immediately execute the requested analytics tool to fulfill their request without making them ask again.

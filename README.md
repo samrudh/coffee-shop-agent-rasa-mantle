@@ -35,12 +35,12 @@ flowchart LR
 
 | Level | Mantle Feature | Architectural Purpose | Reference Implementation |
 | :--- | :--- | :--- | :--- |
-| **Level 1** | **Natural Language & References** | Autonomous semantic exploration grounded by local vector embeddings (`sentence-transformers/all-MiniLM-L6-v2`) over domain guides without writing custom code. | [`skills/coffee_faq/`](skills/coffee_faq/)<br>[`skills/customer_menu/`](skills/customer_menu/) |
-| **Level 2** | **Scoped Instructions (`if:` blocks)** | Compile-time conditional instruction blocks that activate strictly when session memory matches predicates, preventing context clutter. | [`skills/customer_loyalty/skill.md`](skills/customer_loyalty/skill.md) |
-| **Level 3** | **Ordered Blocks (`:::ordered_block`)** | Deterministic procedural execution enforcing ordered multi-step completion guards (`complete_when`) while allowing natural clarification within each step. | [`skills/operator_orders/skill.md`](skills/operator_orders/skill.md) |
-| **Level 4** | **Sub-Skill Composition (`@skill.<name>`)** | High-level orchestrator delegating tasks to isolated, reusable specialist sub-skills rather than building monolithic workflows. | [`skills/operator_inventory/`](skills/operator_inventory/)<br>[`skills/restock_inventory/`](skills/restock_inventory/) |
-| **Level 5a** | **Declarative Tool Constraints** | Hard engine-level preconditions (`requires: session.project.selected_item`) and mandatory verification steps (`requires_confirmation: enabled: true`). | [`skills/customer_order/skill.md`](skills/customer_order/skill.md) |
-| **Level 5b** | **Programmatic RBAC via Context** | Security boundary where Python decorators inspect `ToolContext.memory` to block unauthorized access to sensitive tools unless unlocked via PIN authentication. | [`skills/ceo_analytics/`](skills/ceo_analytics/)<br>[`skills/authenticate_ceo/`](skills/authenticate_ceo/)<br>[`tools/coffeeshop.py`](tools/coffeeshop.py) |
+| **Level 1** | **Natural Language & References** | Autonomous semantic exploration grounded by local vector embeddings (`sentence-transformers/all-MiniLM-L6-v2`) over domain guides without writing custom code. | [`skills/coffee_faq/`](skills/coffee_faq/)<br>[`skills/browse_coffee_menu/`](skills/browse_coffee_menu/) |
+| **Level 2** | **Scoped Instructions (`if:` blocks)** | Compile-time conditional instruction blocks that activate strictly when session memory matches predicates, preventing context clutter. | [`skills/check_loyalty_rewards/skill.md`](skills/check_loyalty_rewards/skill.md) |
+| **Level 3** | **Ordered Blocks (`:::ordered_block`)** | Deterministic procedural execution enforcing ordered multi-step completion guards (`complete_when`) while allowing natural clarification within each step. | [`skills/process_store_orders/skill.md`](skills/process_store_orders/skill.md) |
+| **Level 4** | **Sub-Skill Composition (`@skill.<name>`)** | High-level orchestrator delegating tasks to isolated, reusable specialist sub-skills rather than building monolithic workflows. | [`skills/manage_store_inventory/`](skills/manage_store_inventory/)<br>[`skills/restock_inventory/`](skills/restock_inventory/) |
+| **Level 5a** | **Declarative Tool Constraints** | Hard engine-level preconditions (`requires: session.place_customer_order.selected_item`) and mandatory verification steps (`requires_confirmation: enabled: true`). | [`skills/place_customer_order/skill.md`](skills/place_customer_order/skill.md) |
+| **Level 5b** | **Programmatic RBAC via Context** | Security boundary where Python decorators inspect `ToolContext.memory` to block unauthorized access to sensitive tools unless unlocked via PIN authentication. | [`skills/query_executive_analytics/`](skills/query_executive_analytics/)<br>[`skills/verify_ceo_authentication/`](skills/verify_ceo_authentication/)<br>[`tools/coffeeshop.py`](tools/coffeeshop.py) |
 
 ---
 
@@ -50,7 +50,7 @@ flowchart LR
 In Mantle, you do not write giant `if/else` logic in code for conversational variations. Using scoped prose markers, the engine dynamically injects rules only when the session memory satisfies the predicate:
 
 ```markdown
-<!-- skills/customer_loyalty/skill.md -->
+<!-- skills/check_loyalty_rewards/skill.md -->
 Once their profile is retrieved, announce their current points balance and tier status.
 
 if: session.project.loyalty_tier == "Gold"
@@ -64,35 +64,35 @@ Congratulate the customer on earning enough rewards for a free handcrafted drink
 When an enterprise process must follow exact compliance steps (e.g. Barista order fulfillment or banking transactions), Mantle's `:::ordered_block` provides linear guarantees without losing conversational fluidity:
 
 ```yaml
-<!-- skills/operator_orders/skill.md -->
+<!-- skills/process_store_orders/skill.md -->
 :::ordered_block id=barista_fulfillment_flow
 steps:
   - id: fetch_queue
-    execute_tool: get_store_order_queue
+    execute_tool: fetch_store_order_queue
   - id: select_order
     instructions: |
       Present open orders. Ask which order they want to prepare, and record the Order ID in selected_order_id.
-    complete_when: session.operator_orders.selected_order_id
+    complete_when: session.process_store_orders.selected_order_id
   - id: verify_recipe
     instructions: |
       Verify drink specifications. Confirm with the barista and set recipe_verified to true.
-    complete_when: session.operator_orders.recipe_verified == True
+    complete_when: session.process_store_orders.recipe_verified == True
   - id: start_brewing
     instructions: |
       Instruct the barista to start brewing. When they confirm, set brewing_confirmed to true.
-    complete_when: session.operator_orders.brewing_confirmed == True
+    complete_when: session.process_store_orders.brewing_confirmed == True
   - id: mark_ready_for_pickup
     instructions: |
       Call @tool.update_order_pickup_status with status 'ready'. Set pickup_notified to true.
-    complete_when: session.operator_orders.pickup_notified == True
+    complete_when: session.process_store_orders.pickup_notified == True
 :::
 ```
 
 ### Pattern C: Modular Sub-Skill Delegation (Level 4)
-Rather than overloading a single inventory skill with edge cases, `operator_inventory` acts as an orchestrator, dispatching to `@skill.restock_inventory` or `@skill.escalate_supply_outage`:
+Rather than overloading a single inventory skill with edge cases, `manage_store_inventory` acts as an orchestrator, dispatching to `@skill.restock_inventory` or `@skill.escalate_supply_outage`:
 
 ```markdown
-<!-- skills/operator_inventory/skill.md -->
+<!-- skills/manage_store_inventory/skill.md -->
 If inventory levels are adequate, summarize stock status clearly.
 
 If stock is low or the operator receives incoming supplies:
@@ -106,10 +106,10 @@ Transfer execution to @skill.escalate_supply_outage to trigger immediate supply 
 Mantle enforces tool requirements declaratively in YAML. The LLM cannot trigger `place_coffee_order` without memory holding the selected item, and the engine automatically triggers `utter_confirm_coffee_order` before tool execution:
 
 ```yaml
-<!-- skills/customer_order/skill.md -->
+<!-- skills/place_customer_order/skill.md -->
 tool_constraints:
   - place_coffee_order:
-      requires: session.project.selected_item
+      requires: session.place_customer_order.selected_item
       requires_confirmation:
         enabled: true
         utter_for_confirmation: utter_confirm_coffee_order
@@ -148,7 +148,7 @@ A common challenge in conversational AI is preventing persona cross-talk (e.g. a
 This architecture demonstrates **clean role separation**:
 1. **Customer**: Natural language discovery, scoped tier rewards, declarative ordering.
 2. **Operator**: Procedural barista queue fulfillment, sub-skill inventory management.
-3. **CEO**: PIN challenge flow (`skills/authenticate_ceo`) writing `is_ceo=True` to session memory, unlocking financial and gross-margin analytics.
+3. **CEO**: PIN challenge flow (`skills/verify_ceo_authentication`) writing `is_ceo=True` to session memory, unlocking financial and gross-margin analytics.
 
 ---
 
@@ -167,16 +167,16 @@ coffee-shop/
 ├── lib/                       # SQLite data layer & importer (149k ledger + synthetic tables)
 ├── tools/                     # 16 Mantle tools with @tool decorator and RBAC security
 ├── skills/                    # 11 Modular skills implementing Progressive Control
-│   ├── customer_menu/         # Level 1: Natural Language menu lookup
+│   ├── browse_coffee_menu/    # Level 1: Natural Language menu lookup
 │   ├── coffee_faq/            # Level 1: Semantic embeddings retrieval with references/
-│   ├── customer_loyalty/      # Level 2: Scoped instructions with if: predicates
-│   ├── operator_orders/       # Level 3: Ordered block for drink preparation
-│   ├── operator_inventory/    # Level 4: Orchestrator delegating to sub-skills
+│   ├── check_loyalty_rewards/ # Level 2: Scoped instructions with if: predicates
+│   ├── process_store_orders/  # Level 3: Ordered block for drink preparation
+│   ├── manage_store_inventory/# Level 4: Orchestrator delegating to sub-skills
 │   ├── restock_inventory/     # Level 4: Sub-skill for shipment intake
 │   ├── escalate_supply_outage/# Level 4: Sub-skill for critical stock alerts
-│   ├── customer_order/        # Level 5a: Tool constraints & confirmation gate
-│   ├── authenticate_ceo/      # Level 5b: PIN authentication flow
-│   ├── ceo_analytics/         # Level 5b: RBAC-gated financial intelligence
+│   ├── place_customer_order/  # Level 5a: Tool constraints & confirmation gate
+│   ├── verify_ceo_authentication/# Level 5b: PIN authentication flow
+│   ├── query_executive_analytics/# Level 5b: RBAC-gated financial intelligence
 │   └── goodbye/               # Clean session termination
 └── tests/                     # Multi-tier testing suite
     ├── e2e/test_deterministic.yml  # Deterministic tracker assertions across all personas

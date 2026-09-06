@@ -39,6 +39,6 @@ last_ordered_item:
   type: text
   description: "Name of the most recently ordered drink or pastry."
 
-selected_item:
+user_mood:
   type: text
-  description: "Drink or pastry item selected for ordering before final confirmation."
+  description: "Customer expressed mood or energy state (e.g. sleepy, stressed, cozy)."

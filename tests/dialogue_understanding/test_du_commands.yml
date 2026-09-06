@@ -6,31 +6,31 @@ test_cases:
     steps:
       - user: What kind of iced coffees and teas do you serve?
         commands:
-          - StartFlow("customer_menu")
+          - StartFlow("browse_coffee_menu")
 
   - test_case: Customer order request command extraction
     steps:
       - user: Can I place an order for a large Dark Chocolate?
         commands:
-          - StartFlow("customer_order")
+          - StartFlow("place_customer_order")
 
   - test_case: Loyalty points check command extraction
     steps:
       - user: Check rewards balance for CUST-1001
         commands:
-          - StartFlow("customer_loyalty")
+          - StartFlow("check_loyalty_rewards")
 
   - test_case: Barista queue request command extraction
     steps:
       - user: Barista queue check for store 5
         commands:
-          - StartFlow("operator_orders")
+          - StartFlow("process_store_orders")
 
   - test_case: Executive revenue query command extraction
     steps:
       - user: Give me an executive revenue and sales summary report.
         commands:
-          - StartFlow("ceo_analytics")
+          - StartFlow("query_executive_analytics")
 
   - test_case: Restraint test - Smalltalk produces no commands
     steps:

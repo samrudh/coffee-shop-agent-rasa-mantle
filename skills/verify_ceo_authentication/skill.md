@@ -1,5 +1,5 @@
 ---
-name: authenticate_ceo
+name: verify_ceo_authentication
 description: >
   Verify the 4-digit CEO Executive Security PIN to unlock privileged business and financial analytics.
   Activate when the user explicitly asks to authenticate as CEO or provides their executive PIN.
@@ -7,7 +7,7 @@ import_tools:
   - verify_ceo_pin
 tool_constraints:
   - verify_ceo_pin:
-      requires: session.authenticate_ceo.pin_attempt
+      requires: session.verify_ceo_authentication.pin_attempt
 ---
 
 Verify CEO / Executive credentials to grant analytics access.

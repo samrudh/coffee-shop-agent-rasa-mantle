@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artisan Roast AI — Sensory Coffee Sommelier & Rasa Mantle Showcase</title>
+  
+  <!-- Modern Typography (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-espresso">
+
+  <!-- Header Navigation -->
+  <header class="navbar">
+    <div class="logo-container">
+      <div class="logo-icon">
+        <i class="fa-solid fa-mug-hot"></i>
+      </div>
+      <div class="logo-text">
+        <span class="brand-title">Artisan Roast <span class="badge-ai">AI</span></span>
+        <span class="brand-sub">Sensory Sommelier & Rasa Mantle Engine</span>
+      </div>
+    </div>
+
+    <!-- Persona Switcher -->
+    <div class="persona-tabs">
+      <button class="persona-btn active" data-persona="customer" id="btn-persona-customer">
+        <i class="fa-solid fa-sparkles"></i> Customer & Sommelier
+      </button>
+      <button class="persona-btn" data-persona="barista" id="btn-persona-barista">
+        <i class="fa-solid fa-fire-burner"></i> Barista Queue (#5)
+      </button>
+      <button class="persona-btn" data-persona="ceo" id="btn-persona-ceo">
+        <i class="fa-solid fa-chart-line-up"></i> CEO Analytics <i class="fa-solid fa-lock lock-icon"></i>
+      </button>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="header-controls">
+      <button class="voice-toggle-btn" id="voice-synthesis-toggle" title="Toggle AI Voice Response">
+        <i class="fa-solid fa-volume-high"></i> <span id="voice-status-text">Voice On</span>
+      </button>
+      <div class="store-selector-dropdown">
+        <i class="fa-solid fa-location-dot"></i>
+        <select id="store-location-select">
+          <option value="5" selected>Lower Manhattan (#5)</option>
+          <option value="3">Astoria (#3)</option>
+          <option value="8">Hell's Kitchen (#8)</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Hero Banner -->
+  <section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-tag"><i class="fa-solid fa-brain-circuit"></i> 384-Dimensional Sensory Vector Matcher</div>
+      <h1 class="hero-title">How are you feeling today?</h1>
+      <p class="hero-subtitle">Express your mood or energy state, and our AI Sommelier vector matches your feeling to artisanal roast profiles, acidity, and caffeine levels.</p>
+      
+      <!-- Interactive Mood Chips -->
+      <div class="mood-chips-container">
+        <button class="mood-chip" data-mood="I'm feeling sleepy and have a big presentation in 15 minutes. Need a bright caffeine surge!">
+          <span class="chip-emoji">😴</span> Sleepy & Need Energy
+        </button>
+        <button class="mood-chip" data-mood="I am feeling stressed and jittery today. I need something smooth and calm with zero acidity.">
+          <span class="chip-emoji">🤯</span> Stressed & Need Calm Focus
+        </button>
+        <button class="mood-chip" data-mood="It is a cozy rainy afternoon. I want something rich, warm, and indulgent.">
+          <span class="chip-emoji">🌧️</span> Cozy Rainy Afternoon
+        </button>
+        <button class="mood-chip" data-mood="Feeling adventurous today! Recommend a unique single-origin coffee with citrus and floral notes.">
+          <span class="chip-emoji">🎨</span> Feeling Adventurous
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- App Workspace (Customer View) -->
+  <main class="workspace-grid" id="view-customer">
+    
+    <!-- Left Column: Live AI Sommelier Chat -->
+    <section class="chat-card glass-panel">
+      <div class="card-header">
+        <div class="header-title">
+          <i class="fa-solid fa-comments"></i> AI Sommelier Dialogue
+        </div>
+        <div class="mantle-badge">
+          <span class="pulse-dot"></span> Rasa Mantle L1-L5 Active
+        </div>
+      </div>
+
+      <!-- Chat Messages Container -->
+      <div class="chat-messages" id="chat-messages-box">
+        <!-- Initial Welcome Message -->
+        <div class="message message-bot">
+          <div class="avatar avatar-bot"><i class="fa-solid fa-robot"></i></div>
+          <div class="message-bubble">
+            <p>Welcome to <strong>Artisan Roast Coffee Co.</strong>! I'm your AI Sommelier.</p>
+            <p>Tell me how you're feeling or what kind of energy you need today, and I'll compute the exact vector match across our roast profiles!</p>
+            <div class="message-meta">Just now • Model: Gemini 2.5 Flash</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Input Controls -->
+      <form class="chat-input-bar" id="chat-form">
+        <button type="button" class="btn-mic" id="btn-mic-input" title="Voice Input">
+          <i class="fa-solid fa-microphone"></i>
+        </button>
+        <input type="text" id="chat-input" placeholder="Type your mood or request (e.g. 'I'm sleepy and need a bright coffee')..." autocomplete="off" />
+        <button type="submit" class="btn-send" id="btn-chat-send">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+    </section>
+
+    <!-- Right Column: Vector Sommelier Match Card & Product Details -->
+    <section class="sommelier-result-card glass-panel">
+      <div class="card-header">
+        <div class="header-title">
+          <i class="fa-solid fa-compass-drafting"></i> Sensory Vector Analysis
+        </div>
+        <div class="vector-score-badge" id="vector-score-badge">
+          <i class="fa-solid fa-bolt"></i> <span id="match-score-text">96.8% Vector Match</span>
+        </div>
+      </div>
+
+      <!-- Match Score Progress Bar -->
+      <div class="match-progress-container">
+        <div class="match-progress-bar" id="match-progress-fill" style="width: 96.8%;"></div>
+      </div>
+
+      <!-- Active Recommendation Card -->
+      <div class="recommendation-content" id="recommendation-display">
+        <div class="product-hero-image-wrapper">
+          <img src="images/ethiopian_cup.jpg" alt="Recommended Beverage" class="product-hero-img" id="product-img" />
+          <div class="roast-badge" id="product-roast-badge">Light Roast</div>
+        </div>
+
+        <div class="product-details">
+          <h2 class="product-name" id="product-name">Ethiopia Yirgacheffe Organic</h2>
+          <div class="product-price-row">
+            <span class="product-price" id="product-price">$3.00</span>
+            <span class="product-category" id="product-category">Gourmet Brewed Coffee</span>
+          </div>
+
+          <!-- Sensory Meters -->
+          <div class="sensory-meters-grid">
+            <div class="meter-box">
+              <span class="meter-label">Acidity</span>
+              <span class="meter-value" id="product-acidity">High Citric</span>
+            </div>
+            <div class="meter-box">
+              <span class="meter-label">Body</span>
+              <span class="meter-value" id="product-body">Light Silky</span>
+            </div>
+            <div class="meter-box">
+              <span class="meter-label">Caffeine</span>
+              <span class="meter-value" id="product-caffeine">High Surge</span>
+            </div>
+          </div>
+
+          <!-- Flavor Notes Tags -->
+          <div class="flavor-notes-wrapper">
+            <span class="notes-heading">Flavor Notes:</span>
+            <div class="notes-tags" id="product-flavor-tags">
+              <span class="tag-pill"><i class="fa-solid fa-flower"></i> Floral Jasmine</span>
+              <span class="tag-pill"><i class="fa-solid fa-lemon"></i> Bergamot Citrus</span>
+              <span class="tag-pill"><i class="fa-solid fa-jar"></i> Wild Honey</span>
+            </div>
+          </div>
+
+          <!-- Sommelier Rationale -->
+          <div class="rationale-box">
+            <div class="rationale-title"><i class="fa-solid fa-lightbulb"></i> Sommelier Rationale:</div>
+            <p class="rationale-text" id="product-rationale">
+              High-altitude light roast delivers a crisp citric acidity and clean caffeine surge to wake up your senses immediately without feeling heavy in your stomach.
+            </p>
+          </div>
+
+          <!-- Quick Order Action -->
+          <div class="order-action-bar">
+            <div class="size-selector">
+              <label>Size:</label>
+              <select id="order-size-select">
+                <option value="Regular">Regular</option>
+                <option value="Large" selected>Large (+ $0.50)</option>
+                <option value="Small">Small</option>
+              </select>
+            </div>
+            <button class="btn-order-now" id="btn-place-order">
+              <i class="fa-solid fa-bag-shopping"></i> Place Pickup Order
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Barista Queue View (Hidden by default) -->
+  <main class="workspace-grid hidden" id="view-barista">
+    <section class="queue-panel glass-panel full-width">
+      <div class="card-header">
+        <div class="header-title">
+          <i class="fa-solid fa-list-check"></i> Live Barista Store Queue (Lower Manhattan #5)
+        </div>
+        <button class="btn-secondary" id="btn-refresh-queue"><i class="fa-solid fa-rotate"></i> Refresh Queue</button>
+      </div>
+
+      <div class="queue-list-grid" id="barista-queue-container">
+        <!-- Queue Order Cards will be populated by app.js -->
+      </div>
+    </section>
+  </main>
+
+  <!-- CEO Analytics View (Gated PIN Challenge Modal) -->
+  <main class="workspace-grid hidden" id="view-ceo">
+    <!-- PIN Challenge Layer -->
+    <div class="pin-modal-overlay" id="pin-modal">
+      <div class="pin-modal-card glass-panel">
+        <div class="lock-header">
+          <i class="fa-solid fa-shield-halved lock-large"></i>
+          <h3>Executive Authorization Required</h3>
+          <p>Please enter your 4-digit Executive Security PIN to unlock sales & margin analytics.</p>
+        </div>
+        <div class="pin-input-group">
+          <input type="password" id="pin-input" maxlength="4" placeholder="••••" autocomplete="off" />
+          <button class="btn-primary" id="btn-verify-pin">Authenticate PIN</button>
+        </div>
+        <div class="pin-error" id="pin-error-msg"></div>
+        <div class="pin-hint"><i class="fa-solid fa-key"></i> Demo PIN: <strong>8888</strong></div>
+      </div>
+    </div>
+
+    <!-- CEO Analytics Content (Unlocked after PIN) -->
+    <section class="analytics-panel glass-panel full-width hidden" id="ceo-dashboard-content">
+      <div class="card-header">
+        <div class="header-title">
+          <i class="fa-solid fa-chart-pie"></i> Executive Financial & Gross Margin Intelligence
+        </div>
+        <div class="auth-status-badge"><i class="fa-solid fa-circle-check"></i> CEO Privileges Verified</div>
+      </div>
+
+      <!-- KPI Stat Cards -->
+      <div class="kpi-cards-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Portfolio Revenue</div>
+          <div class="kpi-value">$698,812</div>
+          <div class="kpi-sub">149,116 Transactions</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Gross Margin %</div>
+          <div class="kpi-value highlight-gold">81.5%</div>
+          <div class="kpi-sub">$569,450 Profit</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Top Store Location</div>
+          <div class="kpi-value">Lower Manhattan (#5)</div>
+          <div class="kpi-sub">$245,120 Sales</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">High-Margin Category</div>
+          <div class="kpi-value">Gourmet Coffee</div>
+          <div class="kpi-sub">86.2% Margin</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Notification Toast -->
+  <div class="toast-notification" id="toast"></div>
+
+  <!-- Custom JavaScript Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

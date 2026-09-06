@@ -35,6 +35,7 @@ from lib.database import (
     get_customer_tier_overview,
     get_executive_revenue_summary,
     get_order,
+    get_sensory_menu_catalog,
     get_store_benchmarks,
     get_store_inventory,
     get_store_order_queue as db_get_store_order_queue,
@@ -131,8 +132,100 @@ async def check_ceo_status(
 
 
 # ------------------------------------------------------------------------------
-# Customer Persona Tools
 # ------------------------------------------------------------------------------
+# Customer Persona & Sommelier Tools
+# ------------------------------------------------------------------------------
+
+_MODEL_CACHE = None
+
+
+def _get_embedding_model():
+    global _MODEL_CACHE
+    if _MODEL_CACHE is None:
+        try:
+            from sentence_transformers import SentenceTransformer
+            _MODEL_CACHE = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+        except Exception:
+            _MODEL_CACHE = False
+    return _MODEL_CACHE if _MODEL_CACHE is not False else None
+
+
+@tool(description="Recommend optimal coffee, tea, or specialty beverage by matching customer mood, energy level, emotion, or flavor preferences using 384-dimensional sensory vector similarity.")
+async def match_coffee_by_sensory_vector(
+    user_mood_query: str,
+    target_vibe: str = "",
+    context: ToolContext = None,
+) -> ToolResult:
+    """Recommend optimal coffee or tea beverages using vector embeddings & sensory profile matching.
+
+    Args:
+        user_mood_query: Natural language mood or energy description (e.g. 'I am sleepy and need something interesting', 'stressed and need calm focus', 'cozy rainy afternoon').
+        target_vibe: Optional vibe tag ('energetic', 'calming', 'comforting', 'adventurous').
+    """
+    catalog = get_sensory_menu_catalog()
+    combined_query = f"{user_mood_query} {target_vibe}".strip()
+
+    model = _get_embedding_model()
+    results = []
+
+    if model is not None:
+        import numpy as np
+        query_vec = model.encode(combined_query, convert_to_tensor=False)
+
+        for item in catalog:
+            item_vec = model.encode(item["sensory_profile"], convert_to_tensor=False)
+            norm_q = float(np.linalg.norm(query_vec))
+            norm_i = float(np.linalg.norm(item_vec))
+            sim = float(np.dot(query_vec, item_vec) / (norm_q * norm_i)) if (norm_q > 0 and norm_i > 0) else 0.0
+
+            results.append({
+                "item_name": item["item_name"],
+                "category": item["category"],
+                "unit_price": item["unit_price"],
+                "roast_type": item["roast_type"],
+                "acidity": item["acidity"],
+                "caffeine_level": item["caffeine_level"],
+                "flavor_notes": item["flavor_notes"],
+                "sensory_profile": item["sensory_profile"],
+                "vector_match_score": round(sim * 100, 1),
+            })
+
+        results.sort(key=lambda x: x["vector_match_score"], reverse=True)
+    else:
+        query_lower = combined_query.lower()
+        for item in catalog:
+            score = 70.0
+            if any(w in item["sensory_profile"].lower() for w in query_lower.split()):
+                score += 20.0
+            results.append({
+                "item_name": item["item_name"],
+                "category": item["category"],
+                "unit_price": item["unit_price"],
+                "roast_type": item["roast_type"],
+                "acidity": item["acidity"],
+                "caffeine_level": item["caffeine_level"],
+                "flavor_notes": item["flavor_notes"],
+                "sensory_profile": item["sensory_profile"],
+                "vector_match_score": score,
+            })
+        results.sort(key=lambda x: x["vector_match_score"], reverse=True)
+
+    top_matches = results[:2]
+    top_recommendation = top_matches[0] if top_matches else None
+
+    if context is not None and top_recommendation:
+        context.memory.set("user_mood", user_mood_query)
+
+    return ToolResult(
+        llm_response={
+            "ok": True,
+            "query": user_mood_query,
+            "matched_count": len(top_matches),
+            "top_recommendations": top_matches,
+            "recommended_item": top_recommendation["item_name"] if top_recommendation else "",
+        }
+    )
+
 
 @tool(description="Search the coffee and bakery menu by category or keyword with prices and sizes.")
 async def search_coffee_menu(
@@ -285,7 +378,7 @@ async def check_order_status(
 # ------------------------------------------------------------------------------
 
 @tool(description="Retrieve live order queue for a specific coffee store location.")
-async def get_store_order_queue(
+async def fetch_store_order_queue(
     store_id: int = 5,
     order_status: str = "",
     context: ToolContext = None,
@@ -395,7 +488,7 @@ async def escalate_outage_alert(
 
 @tool(description="Analyze aggregate sales revenue, order volumes, average ticket size, and top categories across 149k transactions.")
 @require_role("ceo")
-async def get_revenue_analytics(
+async def fetch_revenue_analytics(
     store_id: int = 0,
     start_date: str = "",
     end_date: str = "",
@@ -415,7 +508,7 @@ async def get_revenue_analytics(
 
 @tool(description="Benchmark revenue, order volume, and ticket sizes across Lower Manhattan, Hell's Kitchen, and Astoria stores.")
 @require_role("ceo")
-async def get_store_comparisons(
+async def fetch_store_benchmarks(
     context: ToolContext = None,
 ) -> ToolResult:
     """Retrieve comparative multi-store operational benchmarks."""
@@ -425,7 +518,7 @@ async def get_store_comparisons(
 
 @tool(description="Analyze Cost of Goods Sold (COGS), gross margins, and profit performance by product category based on recipe BOMs.")
 @require_role("ceo")
-async def get_margin_and_cogs_analytics(
+async def fetch_margin_analytics(
     product_category: str = "",
     context: ToolContext = None,
 ) -> ToolResult:
