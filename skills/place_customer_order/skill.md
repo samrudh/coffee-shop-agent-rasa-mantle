@@ -43,6 +43,24 @@ Store their chosen item name in selected_item, size in selected_size, milk choic
 
 Once the item, size, milk choice, and store location are all specified, call @tool.place_coffee_order with the item name, store ID, size, milk type, and quantity.
 
+<!-- 
+================================================================================
+RASA MANTLE TEAM FEEDBACK & ISSUE SUMMARY
+================================================================================
+ISSUE:
+When running with LiteLLM and Google Gemini (e.g., gemini/gemini-2.5-flash), multi-turn tool execution occasionally fails with:
+  litellm.BadRequestError: Vertex_ai_betaException BadRequestError - 400 INVALID_ARGUMENT
+  "Please ensure that function call turn comes immediately after a user turn or after a function response turn."
+
+ROOT CAUSE:
+In Rasa Mantle's Orchestrator (`rasa.mantle.orchestration.orchestrator`), conversation history turns passed to LiteLLM can contain consecutive `assistant` role messages (e.g. an `assistant` turn with `tool_calls` followed by an `assistant` utterance or prompt) without an intervening `tool` role response turn. Google Gemini strictly rejects message histories that break the `user` -> `assistant (tool_calls)` -> `tool (response)` sequence.
+
+EXPECTED BEHAVIOR:
+1. Mantle's history formatter should normalize turn history before passing messages to LiteLLM/Gemini, ensuring any `assistant` turn containing `tool_calls` is immediately followed by a matching `tool` response turn.
+2. If tool execution is gated or requires confirmation (`requires_confirmation: enabled`), Mantle should inject a synthetic `tool` response event (e.g., `content: "confirmation_pending"`) to preserve strict provider role ordering.
+================================================================================
+-->
+
 When the order is confirmed:
 - Read back the generated Order ID (e.g. ORD-504) character by character.
 - Confirm the store pickup location and estimated prep time (approximately 5 minutes).
