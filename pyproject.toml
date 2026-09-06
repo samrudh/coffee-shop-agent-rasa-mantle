@@ -18,6 +18,9 @@ dependencies = [
 [tool.uv]
 prerelease = "allow"
 
+[tool.rasa-catalog]
+required-secrets = ["GEMINI_API_KEY"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

@@ -1,5 +1,13 @@
 # Artisan Roast Coffee Shop AI Agent
 
+```text
+Author:        Samrudha Kelkar
+Wave:          wave-01-mantle
+Assessed on:   2026-09-05
+Assessed by:   Samrudha Kelkar
+Verified with: rasa-pro 3.20.0.dev6, Python 3.12, uv
+```
+
 **Artisan Roast Coffee Co.** is a production-ready conversational and voice AI assistant built with **Rasa Pro Mantle (formerly CALM v2 / Maestro)** and powered by **Google Gemini LLM**.
 
 Designed for **Rasa Heroes Build Day (Wave 1 Mantle)**, this project demonstrates how to structure real-world enterprise applications across all **Five Levels of Progressive Control** offered by the Rasa Mantle Orchestrator.
@@ -35,8 +43,8 @@ The agent seamlessly serves three distinct enterprise personas within a single c
 
 | Level | Progressive Control Feature | Coffee Shop Implementation | Skill Directory |
 | :--- | :--- | :--- | :--- |
-| **Level 1** | **Natural Language & Knowledge References** | **Menu & Bean Origin Exploration**: Free-form natural language instructions and local embeddings (`sentence-transformers/all-MiniLM-L6-v2`) over origin and roast guides. | `skills/customer_menu/` |
-| **Level 2** | **Scoped Instructions (`if:` blocks)** | **Customer Loyalty & Tier Rewards**: Conditional instruction blocks (`if: session.project.loyalty_tier == "gold"`) dynamically adjusting reward messaging and VIP discounts. | `skills/customer_loyalty/` |
+| **Level 1** | **Natural Language & Knowledge References** | **Menu & Bean Origin Exploration**: Free-form natural language instructions and local embeddings (`sentence-transformers/all-MiniLM-L6-v2`) over origin and roast guides. | `skills/coffee_faq/`<br>`skills/customer_menu/` |
+| **Level 2** | **Scoped Instructions (`if:` blocks)** | **Customer Loyalty & Tier Rewards**: Conditional instruction blocks (`if: session.project.loyalty_tier == "Gold"`) dynamically adjusting reward messaging and VIP discounts. | `skills/customer_loyalty/` |
 | **Level 3** | **Ordered Blocks (`:::ordered_block`)** | **Barista Order Preparation Workflow**: Strictly sequenced 5-step operational block for order queue pickup, recipe verification, brewing status, and customer readiness alerts. | `skills/operator_orders/` |
 | **Level 4** | **Sub-Skills Composition (`@skill.<name>`)** | **Store Inventory Restocking & Escalation**: Modular architecture where `operator_inventory` delegates to standalone sub-skills `@skill.restock_inventory` and `@skill.escalate_supply_outage`. | `skills/operator_inventory/`<br>`skills/restock_inventory/`<br>`skills/escalate_supply_outage/` |
 | **Level 5a** | **Declarative Tool Constraints** | **Order Placement with Confirmation**: `requires_confirmation: enabled: true` and `requires: session.project.selected_item` preventing unconfirmed charges. | `skills/customer_order/` |
@@ -87,9 +95,6 @@ Run all verification and evaluation instruments:
 # Fast deterministic E2E assertions
 make test-e2e
 
-# Dialogue Understanding (DU) command generation tests
-make test-du
-
 # LLM-as-a-Judge groundedness & relevance tests
 make test-judge
 
@@ -102,6 +107,9 @@ make test-all
 ## 5. Rasa Heroes Wave 1 Metadata
 
 - **Author**: Samrudha Kelkar
-- **Project**: Artisan Roast Coffee Shop AI Agent (`coffee-shop`)
-- **Submission Track**: Wave 1 — Rasa Mantle Orchestrator
+- **Project**: Artisan Roast Coffee Shop AI Agent (`samrudh-coffee-shop`)
+- **Wave**: `wave-01-mantle`
+- **Assessed on**: 2026-09-05
+- **Assessed by**: Samrudha Kelkar
+- **Verified with**: rasa-pro 3.20.0.dev6, Python 3.12, uv
 - **License**: Apache 2.0 / Public Community Project
