@@ -45,6 +45,10 @@
 
     <!-- Right Controls -->
     <div class="header-controls">
+      <div class="rasa-status-badge offline" id="rasa-status-badge" title="Rasa Backend API Status">
+        <span class="status-dot"></span>
+        <span id="rasa-status-text">Rasa: Checking...</span>
+      </div>
       <button class="voice-toggle-btn" id="voice-synthesis-toggle" title="Toggle AI Voice Response">
         <i class="fa-solid fa-volume-high"></i> <span id="voice-status-text">Voice On</span>
       </button>
@@ -273,6 +277,27 @@
           <div class="kpi-label">High-Margin Category</div>
           <div class="kpi-value">Gourmet Coffee</div>
           <div class="kpi-sub">86.2% Margin</div>
+        </div>
+      </div>
+
+      <!-- Quick Executive Queries -->
+      <div class="ceo-queries-section" style="margin-top: 20px;">
+        <h4 style="font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-terminal"></i> Query Live Rasa Agent Engine:
+        </h4>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="btn-secondary ceo-query-btn" data-query="What was our total sales revenue and transaction volume?">
+            <i class="fa-solid fa-dollar-sign"></i> Total Revenue
+          </button>
+          <button class="btn-secondary ceo-query-btn" data-query="How are our store locations performing relative to each other?">
+            <i class="fa-solid fa-store"></i> Store Benchmarks
+          </button>
+          <button class="btn-secondary ceo-query-btn" data-query="What is our overall gross profit margin and COGS breakdown?">
+            <i class="fa-solid fa-percent"></i> Margins & COGS
+          </button>
+          <button class="btn-secondary ceo-query-btn" data-query="What is the revenue breakdown across customer loyalty tiers?">
+            <i class="fa-solid fa-crown"></i> Customer Tiers
+          </button>
         </div>
       </div>
     </section>

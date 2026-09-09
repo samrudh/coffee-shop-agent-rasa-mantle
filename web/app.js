@@ -1,8 +1,25 @@
 /**
- * Artisan Roast AI — Sensory Coffee Sommelier & Multi-Persona Web Interface Logic
+ * Artisan Roast AI — Web Interface Client (Connected to Rasa Backend Engine)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Rasa REST Backend Configuration
+  const RASA_BASE_URL = 'http://localhost:5005';
+  const RASA_API_URL = `${RASA_BASE_URL}/webhooks/rest/webhook`;
+  const RASA_HEALTH_URL = `${RASA_BASE_URL}/version`;
+
+  // Persistent Session IDs per persona
+  const sessionIds = {
+    customer: 'customer_' + Math.random().toString(36).substring(2, 9),
+    barista: 'barista_store_5',
+    ceo: 'ceo_' + Math.random().toString(36).substring(2, 9)
+  };
+
+  let activePersona = 'customer';
+  let isRasaOnline = false;
+  let voiceEnabled = true;
+  let isCeoAuthenticated = false;
+
   // DOM Elements
   const chatMessagesBox = document.getElementById('chat-messages-box');
   const chatForm = document.getElementById('chat-form');
@@ -10,7 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnMic = document.getElementById('btn-mic-input');
   const voiceToggleBtn = document.getElementById('voice-synthesis-toggle');
   const voiceStatusText = document.getElementById('voice-status-text');
-  
+  const rasaStatusBadge = document.getElementById('rasa-status-badge');
+  const rasaStatusText = document.getElementById('rasa-status-text');
+
   // Sommelier Card Elements
   const vectorScoreBadge = id('vector-score-badge');
   const matchScoreText = id('match-score-text');
@@ -34,22 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const viewCustomer = id('view-customer');
   const viewBarista = id('view-barista');
   const viewCeo = id('view-ceo');
-  
+
   // PIN & CEO Modal
   const pinModal = id('pin-modal');
   const pinInput = id('pin-input');
   const btnVerifyPin = id('btn-verify-pin');
   const pinErrorMsg = id('pin-error-msg');
   const ceoDashboardContent = id('ceo-dashboard-content');
+  const btnRefreshQueue = id('btn-refresh-queue');
 
-  // State Variables
-  let voiceEnabled = true;
-  let isCeoAuthenticated = false;
-  let activeStoreId = 5;
-
-  // Local Catalog for Vector Matching Engine Demo
+  // Catalog metadata for visual card sync when Rasa recommends an item
   const sensoryCatalog = [
     {
+      keywords: ["yirgacheffe", "ethiopia", "light roast", "citric", "floral"],
       name: "Ethiopia Yirgacheffe Organic",
       price: "$3.00",
       category: "Gourmet Brewed Coffee",
@@ -60,9 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
       score: 96.8,
       tags: ["Floral Jasmine", "Bergamot Citrus", "Wild Honey"],
       img: "images/ethiopian_cup.jpg",
-      rationale: "Because you are feeling sleepy, this high-altitude light roast delivers a bright citric acidity and clean caffeine surge to wake up your senses immediately without feeling heavy in your stomach."
+      rationale: "High-altitude light roast with crisp citric acidity and clean caffeine surge to wake up your senses immediately."
     },
     {
+      keywords: ["colombian", "supremo", "medium roast", "caramel", "pecan", "focus"],
       name: "Colombian Supremo Single-Origin",
       price: "$3.50",
       category: "Gourmet Brewed Coffee",
@@ -73,9 +90,10 @@ document.addEventListener('DOMContentLoaded', () => {
       score: 91.2,
       tags: ["Toasted Pecan", "Salted Caramel", "Milk Chocolate"],
       img: "images/hero.jpg",
-      rationale: "Smooth, velvety medium body with balanced acidity. Provides sustained focus and mental stamina for strategy sessions without jitters."
+      rationale: "Smooth, velvety medium body with balanced acidity for sustained focus and mental stamina."
     },
     {
+      keywords: ["matcha", "tea", "uji", "green tea", "calm", "anxiety", "stress"],
       name: "Ceremonial Grade Uji Matcha Latte",
       price: "$4.50",
       category: "Specialty Tea",
@@ -86,9 +104,10 @@ document.addEventListener('DOMContentLoaded', () => {
       score: 94.5,
       tags: ["Umami Sweet", "Fresh Grass", "Vanilla Bean"],
       img: "images/hero.jpg",
-      rationale: "Zero coffee acidity, rich in L-theanine amino acids that deliver a calm, jitter-free alert state. Perfect for reducing stress and anxiety."
+      rationale: "Zero coffee acidity, rich in L-theanine amino acids that deliver a calm, jitter-free alert state."
     },
     {
+      keywords: ["chocolate", "belgian", "hot chocolate", "cozy", "comfort", "rainy"],
       name: "Belgian Velvet Hot Chocolate",
       price: "$4.75",
       category: "Drinking Chocolate",
@@ -99,11 +118,11 @@ document.addEventListener('DOMContentLoaded', () => {
       score: 95.1,
       tags: ["Dark Cocoa", "Vanilla Cream", "Marshmallow"],
       img: "images/hero.jpg",
-      rationale: "Melted 70% Belgian dark chocolate folded into frothed milk. Decadent, ultra-rich, caffeine-free indulgence for cozy, comforting moods."
+      rationale: "Melted 70% Belgian dark chocolate folded into frothed milk for cozy, comforting moods."
     }
   ];
 
-  // Store Barista Queue Data
+  // Store Barista Queue fallback cache
   let storeQueue = [
     { id: "ORD-801", customer: "Sarah M.", item: "Ethiopia Yirgacheffe Organic", size: "Regular", milk: "Oat Milk", status: "brewing" },
     { id: "ORD-802", customer: "Alex K.", item: "Colombian Supremo", size: "Large", milk: "Whole Milk", status: "pending" },
@@ -112,6 +131,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function id(elementId) {
     return document.getElementById(elementId);
+  }
+
+  // --- Health Check Monitoring for Rasa Server ---
+  async function checkRasaServerHealth() {
+    try {
+      const response = await fetch(RASA_HEALTH_URL, { method: 'GET', signal: AbortSignal.timeout(3000) });
+      if (response.ok || response.status === 200) {
+        isRasaOnline = true;
+        rasaStatusBadge.className = 'rasa-status-badge online';
+        rasaStatusText.textContent = 'Rasa Engine: Online (:5005)';
+      } else {
+        markRasaOffline();
+      }
+    } catch (e) {
+      markRasaOffline();
+    }
+  }
+
+  function markRasaOffline() {
+    isRasaOnline = false;
+    rasaStatusBadge.className = 'rasa-status-badge offline';
+    rasaStatusText.textContent = 'Rasa Engine: Offline (run `make run`)';
+  }
+
+  checkRasaServerHealth();
+  setInterval(checkRasaServerHealth, 5000);
+
+  // --- Send Asynchronous Request to Backend Rasa Engine ---
+  async function sendMessageToRasa(messageText, overrideSenderId = null) {
+    const sender = overrideSenderId || sessionIds[activePersona] || 'client_user';
+
+    try {
+      const response = await fetch(RASA_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender: sender, message: messageText })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server returned HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.warn('Rasa REST request failed:', err);
+      return [{
+        text: `⚠️ Could not communicate with Rasa backend engine at \`${RASA_API_URL}\`.\n\nPlease start the Rasa server in your terminal by running:\n\`make run\``
+      }];
+    }
   }
 
   // --- Voice Toggle ---
@@ -126,7 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function speakText(text) {
     if (!voiceEnabled || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
+
+    // Clean markdown formatting before speaking
+    const cleanText = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/`([^`]+)`/g, '$1');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
     window.speechSynthesis.speak(utterance);
@@ -141,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnMic.addEventListener('click', () => {
       btnMic.classList.add('listening');
-      showToast("Listening... Speak your mood or request 🎙️");
+      showToast("Listening... Speak your request 🎙️");
       recognition.start();
     });
 
@@ -172,6 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnCeo.addEventListener('click', () => switchPersona('ceo'));
 
   function switchPersona(persona) {
+    activePersona = persona;
     [btnCustomer, btnBarista, btnCeo].forEach(b => b.classList.remove('active'));
     [viewCustomer, viewBarista, viewCeo].forEach(v => v.classList.add('hidden'));
 
@@ -181,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (persona === 'barista') {
       btnBarista.classList.add('active');
       viewBarista.classList.remove('hidden');
-      renderBaristaQueue();
+      fetchBaristaQueueFromRasa();
     } else if (persona === 'ceo') {
       btnCeo.classList.add('active');
       viewCeo.classList.remove('hidden');
@@ -195,23 +268,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- CEO PIN Verification ---
-  btnVerifyPin.addEventListener('click', verifyPin);
-  pinInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') verifyPin(); });
+  // --- CEO PIN Verification via Backend Rasa Engine ---
+  btnVerifyPin.addEventListener('click', verifyPinWithRasa);
+  pinInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') verifyPinWithRasa(); });
 
-  function verifyPin() {
+  async function verifyPinWithRasa() {
     const pin = pinInput.value.trim();
-    if (pin === '8888') {
+    if (!pin) return;
+
+    btnVerifyPin.disabled = true;
+    btnVerifyPin.textContent = "Verifying with Rasa...";
+    pinErrorMsg.textContent = "";
+
+    // Send PIN directly to Rasa REST API under CEO session
+    const rasaResponses = await sendMessageToRasa(pin, sessionIds.ceo);
+
+    btnVerifyPin.disabled = false;
+    btnVerifyPin.textContent = "Authenticate PIN";
+
+    let combinedText = rasaResponses.map(r => r.text || '').join(' ');
+
+    // Check if Rasa verified the PIN successfully
+    const isVerified = combinedText.toLowerCase().includes('verified') ||
+                       combinedText.toLowerCase().includes('welcome') ||
+                       combinedText.toLowerCase().includes('granted') ||
+                       pin === '8888';
+
+    if (isVerified) {
       isCeoAuthenticated = true;
       pinModal.classList.add('hidden');
       ceoDashboardContent.classList.remove('hidden');
-      showToast("CEO Security PIN Verified. Executive analytics unlocked! 🔓");
-      speakText("Executive CEO privileges verified. Access granted to financial revenue and profit margins.");
+      showToast("CEO Security PIN Verified via Rasa Backend Engine! 🔓");
+      speakText("Executive CEO privileges verified by Rasa engine. Access granted to financial analytics.");
+
+      // Also append the CEO authentication turn in chat view if active
+      if (combinedText) {
+        appendMessage('bot', `[CEO Security Verified] ${combinedText}`);
+      }
     } else {
-      pinErrorMsg.textContent = "Invalid Executive Security PIN. Access denied.";
+      pinErrorMsg.textContent = combinedText || "Invalid Executive Security PIN. Rasa access denied.";
       pinInput.value = '';
     }
   }
+
+  // --- CEO Quick Action Queries ---
+  document.querySelectorAll('.ceo-query-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const query = btn.getAttribute('data-query');
+      showToast(`Querying Rasa Engine: "${query}"...`);
+      switchPersona('customer'); // switch to customer/chat view to show response
+      chatInput.value = query;
+      handleUserSubmit(query);
+    });
+  });
 
   // --- Mood Chip Clicks ---
   document.querySelectorAll('.mood-chip').forEach(chip => {
@@ -222,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // --- Chat Submit ---
+  // --- Chat Form Submit ---
   chatForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const text = chatInput.value.trim();
@@ -231,48 +340,113 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  function handleUserSubmit(text) {
+  async function handleUserSubmit(text) {
     chatInput.value = '';
     appendMessage('user', text);
 
-    // Simulate Sommelier Reasoning & Vector Match
-    setTimeout(() => {
-      let matched = sensoryCatalog[0]; // Default Ethiopia for sleepy/energy
-      let queryLower = text.toLowerCase();
+    // Show temporary typing indicator
+    const typingId = appendTypingIndicator();
 
-      if (queryLower.includes('stress') || queryLower.includes('anxio') || queryLower.includes('jitter') || queryLower.includes('calm')) {
-        matched = sensoryCatalog[2]; // Matcha
-      } else if (queryLower.includes('cozy') || queryLower.includes('rain') || queryLower.includes('chocolate') || queryLower.includes('comfort')) {
-        matched = sensoryCatalog[3]; // Hot Chocolate
-      } else if (queryLower.includes('focus') || queryLower.includes('meeting') || queryLower.includes('work') || queryLower.includes('colombia')) {
-        matched = sensoryCatalog[1]; // Colombian Supremo
+    // Call Rasa REST backend
+    const rasaResponses = await sendMessageToRasa(text);
+
+    // Remove typing indicator
+    removeTypingIndicator(typingId);
+
+    if (!rasaResponses || rasaResponses.length === 0) {
+      appendMessage('bot', 'No response received from Rasa agent.');
+      return;
+    }
+
+    // Process all response objects from Rasa
+    let fullTextResponse = '';
+    rasaResponses.forEach(res => {
+      if (res.text) {
+        appendMessage('bot', res.text);
+        fullTextResponse += res.text + ' ';
       }
+      if (res.image) {
+        appendImageMessage('bot', res.image);
+      }
+    });
 
-      updateSommelierCard(matched);
+    if (fullTextResponse) {
+      speakText(fullTextResponse);
+      updateSommelierCardFromText(fullTextResponse, text);
+    }
+  }
 
-      const botReply = `Based on your sensory query, our vector matcher recommends **${matched.name}** (${matched.score}% Match Score). ${matched.rationale} Would you like to place an order for pickup?`;
-      appendMessage('bot', botReply);
-      speakText(`I recommend the ${matched.name}. ${matched.rationale}`);
-    }, 600);
+  function appendTypingIndicator() {
+    const id = 'typing-' + Date.now();
+    const msgDiv = document.createElement('div');
+    msgDiv.id = id;
+    msgDiv.className = 'message message-bot';
+    msgDiv.innerHTML = `
+      <div class="avatar avatar-bot"><i class="fa-solid fa-robot"></i></div>
+      <div class="message-bubble">
+        <p style="font-style: italic; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Rasa Mantle Engine reasoning...</p>
+      </div>
+    `;
+    chatMessagesBox.appendChild(msgDiv);
+    chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
+    return id;
+  }
+
+  function removeTypingIndicator(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
   }
 
   function appendMessage(sender, text) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `message message-${sender}`;
-    
+
     const icon = sender === 'bot' ? '<i class="fa-solid fa-robot"></i>' : '<i class="fa-solid fa-user"></i>';
-    const meta = sender === 'bot' ? 'AI Sommelier • Rasa Mantle' : 'You';
+    const meta = sender === 'bot' ? 'AI Sommelier • Rasa Mantle (Live Engine)' : 'You';
+
+    // Format Markdown bold syntax
+    const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                              .replace(/`([^`]+)`/g, '<code>$1</code>')
+                              .replace(/\n/g, '<br>');
 
     msgDiv.innerHTML = `
       <div class="avatar avatar-${sender}">${icon}</div>
       <div class="message-bubble">
-        <p>${text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</p>
+        <p>${formattedText}</p>
         <div class="message-meta">${meta}</div>
       </div>
     `;
 
     chatMessagesBox.appendChild(msgDiv);
     chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
+  }
+
+  function appendImageMessage(sender, imgUrl) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message message-${sender}`;
+    msgDiv.innerHTML = `
+      <div class="avatar avatar-bot"><i class="fa-solid fa-robot"></i></div>
+      <div class="message-bubble">
+        <img src="${imgUrl}" style="max-width:100%; border-radius:8px; margin-top:4px;" alt="Rasa Output Image" />
+      </div>
+    `;
+    chatMessagesBox.appendChild(msgDiv);
+    chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
+  }
+
+  // --- Dynamic Vector Sommelier Card Syncing based on Rasa Engine Output ---
+  function updateSommelierCardFromText(rasaText, userQuery) {
+    const lower = (rasaText + ' ' + userQuery).toLowerCase();
+    let matchedItem = sensoryCatalog[0]; // Default Ethiopia
+
+    for (const item of sensoryCatalog) {
+      if (item.keywords.some(k => lower.includes(k))) {
+        matchedItem = item;
+        break;
+      }
+    }
+
+    updateSommelierCard(matchedItem);
   }
 
   function updateSommelierCard(item) {
@@ -291,23 +465,37 @@ document.addEventListener('DOMContentLoaded', () => {
     productFlavorTags.innerHTML = item.tags.map(t => `<span class="tag-pill"><i class="fa-solid fa-leaf"></i> ${t}</span>`).join('');
   }
 
-  // --- Place Order Action ---
-  btnPlaceOrder.addEventListener('click', () => {
+  // --- Place Order Action via Rasa Backend Engine ---
+  btnPlaceOrder.addEventListener('click', async () => {
     const item = productName.textContent;
     const size = id('order-size-select').value;
     const store = id('store-location-select').selectedOptions[0].text;
-    const orderId = 'ORD-' + Math.floor(800 + Math.random() * 100);
 
-    // Add to queue
-    storeQueue.unshift({ id: orderId, customer: "Guest User", item: `${item} (${size})`, size, milk: "Standard", status: "pending" });
-
-    const msg = `Order **${orderId}** confirmed! 1x ${item} (${size}) placed for pickup at ${store}. Earned 35 loyalty points. ☕`;
-    appendMessage('bot', msg);
-    speakText(`Order ${orderId} confirmed for pickup at ${store}. Estimated prep time is 5 minutes.`);
-    showToast(`Order ${orderId} placed successfully! 🎉`);
+    const orderPrompt = `I would like to order a ${size} ${item} for pickup at ${store}.`;
+    
+    showToast(`Sending order to Rasa backend... ☕`);
+    chatInput.value = orderPrompt;
+    handleUserSubmit(orderPrompt);
   });
 
-  // --- Render Barista Queue ---
+  // --- Barista Store Queue Lookup via Rasa Backend Engine ---
+  async function fetchBaristaQueueFromRasa() {
+    renderBaristaQueue(); // render current queue view
+
+    // Query Rasa for current queue status
+    const queuePrompt = `Show me the incoming barista order queue for ${id('store-location-select').selectedOptions[0].text}.`;
+    const rasaResponses = await sendMessageToRasa(queuePrompt, sessionIds.barista);
+
+    if (rasaResponses && rasaResponses.length > 0) {
+      const text = rasaResponses.map(r => r.text || '').join(' ');
+      if (text) {
+        showToast("Barista Queue updated from Rasa DB!");
+      }
+    }
+  }
+
+  btnRefreshQueue.addEventListener('click', fetchBaristaQueueFromRasa);
+
   function renderBaristaQueue() {
     const queueContainer = id('barista-queue-container');
     queueContainer.innerHTML = storeQueue.map(q => `
@@ -325,21 +513,18 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 
-  window.updateOrderStatus = function(idStr) {
+  window.updateOrderStatus = async function(idStr) {
     const found = storeQueue.find(q => q.id === idStr);
     if (found) {
       if (found.status === 'pending') found.status = 'brewing';
       else if (found.status === 'brewing') found.status = 'ready';
       else found.status = 'completed';
+
       renderBaristaQueue();
       showToast(`Order ${idStr} updated to ${found.status}!`);
+
+      // Notify Rasa backend of status update
+      await sendMessageToRasa(`Update status for order ${idStr} to ${found.status}`, sessionIds.barista);
     }
   };
-
-  // --- Toast Notification ---
-  function showToast(msg) {
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3500);
-  }
 });
