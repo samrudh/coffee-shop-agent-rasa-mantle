@@ -63,6 +63,11 @@ Because Rasa Mantle preserved the intermediate `assistant` text turn in the trac
 
 ---
 
+### System-Wide Report Cross-Reference
+- This issue is also documented in system feedback: [`skills/place_customer_order/RASA_MANTLE_FEEDBACK.md`](file:///Users/samrudhakelkar/Documents/ai/projects/rasa_agent_v1/coffee-shop/skills/place_customer_order/RASA_MANTLE_FEEDBACK.md).
+
+---
+
 ### Workaround & Status
 - **Status**: Documented & reported to core platform team.
 - **Workaround**: Reset the conversation session between multi-turn tool interactions, or sanitize the tracker message history before passing to Vertex AI to strip post-tool assistant text turns.
