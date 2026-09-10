@@ -31,17 +31,21 @@ memory:
   selected_store:
     type: string
     description: "Chosen store location name or ID."
+  order_completed:
+    type: boolean
+    description: "Set to True once the coffee/bakery order is successfully placed."
+complete_when:
+  condition: "session.place_customer_order.order_completed"
 ---
 
 Help the customer place an order for pickup at Artisan Roast Coffee Co.
 
-Ask the customer what beverage or bakery item they would like to order if not specified.
-Ask for their preferred size (Small, Regular, Large) and milk choice (Whole Milk, Oat Milk, Almond Milk, or None) if ordering an espresso or tea beverage.
-Ask which store location they prefer (Lower Manhattan #5, Astoria #3, or Hell's Kitchen #8).
-
-Store their chosen item name in selected_item, size in selected_size, milk choice in selected_milk, and store ID (5 for Lower Manhattan, 3 for Astoria, 8 for Hell's Kitchen) in store_id.
-
-Once the item, size, milk choice, and store location are all specified, call @tool.place_coffee_order with the item name, store ID, size, milk type, and quantity.
+For single beverage/bakery orders, consecutive orders, or group orders:
+1. Determine the item(s) to order. Ask what beverage or bakery item they want if completely unspecified.
+2. For any unspecified options (size or milk choice), apply smart defaults (Size: Regular, Milk: Whole Milk, Store ID: 5 for Lower Manhattan or 3 for Astoria if specified).
+3. Present the default order combination to the customer in a single turn for quick confirmation (e.g., "I can prepare a Regular Cappuccino with Whole Milk for pickup at Astoria #3. Shall I place this order?").
+4. If ordering consecutive items or multiple items in a group order, process all items using this single-turn combination approach to minimize back-and-forth turns.
+5. Call @tool.place_coffee_order with the item name, store ID, size, milk type, and quantity. Set order_completed to True.
 
 <!-- 
 ================================================================================

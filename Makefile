@@ -141,7 +141,12 @@ test-coverage: check-uv guard-env ## Generate test flow coverage report
 	@export SSL_CERT_FILE=$$($(PYTHON) -c "import certifi; print(certifi.where())" 2>/dev/null) || true; \
 	$(RASA) test e2e tests/e2e/ --coverage-report
 
-test-all: test-e2e test-du test-judge test-coverage ## Run all evaluation instruments
+test-sim: check-uv guard-env ## Run multi-turn agent evaluation simulator
+	@echo "$(BLUE)Running multi-turn agent evaluation simulator...$(RESET)"
+	$(PYTHON) ../eval-coffee-shop/eval_simulator.py
+
+test-all: test-e2e test-du test-judge test-coverage test-sim ## Run all evaluation instruments
+
 
 clean: ## Remove models, caches, and database
 	@rm -rf models .rasa logs data/coffeeshop.db

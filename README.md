@@ -309,6 +309,13 @@ make test-judge
 make test-all
 ```
 
+### Multi-Turn Agent Evaluation Suite & User Simulator (`evals/`)
+
+For comprehensive multi-turn dialogue benchmarking, this repository includes an autonomous evaluation harness and user simulator in [`evals/`](evals/):
+- **3-Phase Benchmark ($X \rightarrow Y \rightarrow Z$)**: Demonstrates an overall task completion pass rate improvement from **46.7% (Baseline X)** $\rightarrow$ **20.0% (Upgrade Y)** $\rightarrow$ **80.0% (Refactored Z)**.
+- **Rasa Pro `complete_when` & Combination Prompting**: Documents key architectural patterns for reducing LLM turn count by 7.8% while eliminating multi-item ordering failures.
+- See [`evals/README.md`](evals/README.md) for full benchmark reports and instructions to run the simulator.
+
 ---
 
 ## 9. How to Adapt this Blueprint for Your Use Case

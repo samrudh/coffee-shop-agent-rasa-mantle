@@ -1,16 +1,16 @@
 ---
 name: manage_store_inventory
 description: >
-  Monitor store inventory levels, check low-stock thresholds for beans, dairy, and syrups,
-  and coordinate restocking deliveries or emergency outage escalations.
-  Activate when a store operator or barista asks about inventory, stock levels, or ingredients.
+  Monitor store inventory levels, check stock thresholds for coffee beans, dairy, syrups, or bakery items.
+  Activate when a customer, barista, or operator asks about store inventory, bean stock, or ingredient availability.
 import_tools:
   - check_store_inventory
 ---
 
-Assist the store operator with real-time inventory oversight.
+Assist customers and store operators with real-time inventory oversight.
 
-If a store location was mentioned (e.g. Astoria #3, Lower Manhattan #5, Hell's Kitchen #8), query that store. Otherwise, use store 5 by default.
+If a store location was mentioned (e.g. Astoria store #3, Lower Manhattan store #5, Hell's Kitchen store #8), pass store_id=3 for Astoria, store_id=5 for Lower Manhattan, or store_id=8 for Hell's Kitchen. Otherwise, use store 5 by default.
+If checking stock for coffee beans, beans, or any bean ingredient, always map category to exactly "Beans" when calling @tool.check_store_inventory.
 If the operator asks about low stock or depleted items, call @tool.check_store_inventory with low_stock_only=True.
 Otherwise, call @tool.check_store_inventory to list current on-hand quantities.
 
