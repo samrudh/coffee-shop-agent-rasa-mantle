@@ -119,3 +119,10 @@ make run
 # 4. (Optional) Run the evaluation suite & Web UI dashboard (Terminal 2 - open a separate terminal tab/window)
 cd evals && python3 server.py
 ```
+
+---
+
+## 9. Data Sources & Acknowledgments
+
+* **Coffee Sales & Transaction Ledger**: Executive financial analytics and store transaction metrics are built upon and extended from the [Kaggle Coffee Sales Dataset](https://www.kaggle.com/datasets/ahmedabbas757/coffee-sales) by Ahmed Abbas.
+
