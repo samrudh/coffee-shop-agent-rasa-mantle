@@ -51,10 +51,7 @@ coffee-shop/evals/
 ├── server.py                # Standalone HTTP server for Web UI dashboard & live LLM traceability
 ├── web/                     # Web UI dashboard frontend assets
 │   └── index.html           # Interactive evaluation dashboard UI
-└── eval_results/            # Summary benchmark results (JSON)
-    ├── baseline_results_X.json
-    ├── upgrade_results_Y.json
-    ├── refactored_results_Z.json
+└── eval_results/            # Benchmark report markdown
     └── BENCHMARK_REPORT.md
 ```
 
