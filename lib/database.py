@@ -386,18 +386,19 @@ def get_executive_revenue_summary(
     cursor.execute(sql, params)
     summary = dict(cursor.fetchone())
 
-    # Top product categories by revenue
     cat_sql = """
         SELECT product_category, ROUND(SUM(line_total), 2) AS category_revenue,
                ROUND(SUM(line_total) * 100.0 / (SELECT SUM(line_total) FROM transactions), 1) AS revenue_share_pct
         FROM transactions
         WHERE 1=1
     """
+    cat_params: list[Any] = []
     if store_id:
-        cat_sql += f" AND store_id = {store_id}"
+        cat_sql += " AND store_id = ?"
+        cat_params.append(store_id)
     cat_sql += " GROUP BY product_category ORDER BY category_revenue DESC LIMIT 4"
 
-    cursor.execute(cat_sql)
+    cursor.execute(cat_sql, cat_params)
     summary["top_categories"] = [dict(r) for r in cursor.fetchall()]
 
     conn.close()
